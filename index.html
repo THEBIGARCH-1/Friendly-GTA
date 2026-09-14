@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wobbly Life 3D Prototype</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #7ecef4;
+            font-family: Arial, sans-serif;
+            user-select: none;
+        }
+        #instructions {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+        h1 { margin: 0 0 5px 0; font-size: 20px; color: #ffcc00; }
+        p { margin: 0; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div id="instructions">
+        <h1>Wobbly Life 3D Prototype</h1>
+        <p><b>WASD</b> to move around</p>
+        <p><b>Hold Right-Click + Mouse</b> to look around</p>
+    </div>
+
+    <!-- Include Three.js library directly from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // --- 1. SCENE SETUP ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x7ecef4);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 20, 10);
+        scene.add(dirLight);
+
+        // --- 2. ENVIRONMENT (Ground & Roads) ---
+        const groundGeo = new THREE.PlaneGeometry(100, 100);
+        const groundMat = new THREE.MeshLambertMaterial({ color: 0x5cba47 });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        scene.add(ground);
+
+        // Add a road template grid
+        const roadGeo = new THREE.BoxGeometry(10, 0.05, 100);
+        const roadMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
+        const road = new THREE.Mesh(roadGeo, roadMat);
+        road.position.y = 0.01;
+        scene.add(road);
+
+        // --- 3. WOBBLY CHARACTER ---
+        const characterGroup = new THREE.Group();
+        scene.add(characterGroup);
+
+        // Goofy yellow body mesh
+        const bodyGeo = new THREE.SphereGeometry(1.2, 16, 16);
+        const bodyMat = new THREE.MeshLambertMaterial({ color: 0xffcc00 });
+        const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+        bodyMesh.position.y = 1.2;
+        characterGroup.add(bodyMesh);
+
+        // Eyes
+        const eyeGeo = new THREE.SphereGeometry(0.2, 8, 8);
+        const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+
+        const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+        leftEye.position.set(-0.4, 1.6, 1.0);
+        const leftPupil = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), pupilMat);
+        leftPupil.position.set(-0.4, 1.6, 1.15);
+        
+        const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+        rightEye.position.set(0.4, 1.6, 1.0);
+        const rightPupil = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), pupilMat);
+        rightPupil.position.set(0.4, 1.6, 1.15);
+
+        characterGroup.add(leftEye, leftPupil, rightEye, rightPupil);
+
+        // --- 4. CONTROLS & PHYSICS STATE ---
+        let keys = { w: false, a: false, s: false, d: false };
+        let velocity = new THREE.Vector3();
+        let targetVelocity = new THREE.Vector3();
+        const moveSpeed = 0.12;
+
+        let isRightMouseDown = false;
+        let cameraAngleX = 0;
+        let cameraAngleY = 0.5;
+        let cameraDistance = 8;
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = true;
+            if (e.key.toLowerCase() === 'a') keys.a = true;
+            if (e.key.toLowerCase() === 's') keys.s = true;
+            if (e.key.toLowerCase() === 'd') keys.d = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = false;
+            if (e.key.toLowerCase() === 'a') keys.a = false;
+            if (e.key.toLowerCase() === 's') keys.s = false;
+            if (e.key.toLowerCase() === 'd') keys.d = false;
+        });
+
+        window.addEventListener('mousedown', (e) => {
+            if (e.button === 2) isRightMouseDown = true;
+        });
+        window.addEventListener('mouseup', (e) => {
+            if (e.button === 2) isRightMouseDown = false;
+        });
+        window.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        window.addEventListener('mousemove', (e) => {
+            if (isRightMouseDown) {
+                cameraAngleX -= e.movementX * 0.005;
+                cameraAngleY -= e.movementY * 0.005;
+                cameraAngleY = Math.max(0.1, Math.min(Math.PI / 2 - 0.05, cameraAngleY));
+            }
+        });
+
+        // --- 5. GAME LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            targetVelocity.set(0, 0, 0);
+            let forward = new THREE.Vector3(Math.sin(cameraAngleX), 0, Math.cos(cameraAngleX));
+            let right = new THREE.Vector3(Math.cos(cameraAngleX), 0, -Math.sin(cameraAngleX));
+
+            if (keys.w) targetVelocity.add(forward);
+            if (keys.s) targetVelocity.sub(forward);
+            if (keys.d) targetVelocity.add(right);
+            if (keys.a) targetVelocity.sub(right);
+
+            if (targetVelocity.lengthSq() > 0) {
+                targetVelocity.normalize().multiplyScalar(moveSpeed);
+            }
+
+            velocity.lerp(targetVelocity, 0.15);
+            characterGroup.position.add(velocity);
+
+            let speedFactor = velocity.length();
+            if (speedFactor > 0.01) {
+                let wobble = Math.sin(Date.now() / 60) * 0.15;
+                bodyMesh.scale.set(1 + wobble, 1 - wobble, 1 + wobble);
+                
+                let lookTarget = characterGroup.position.clone().add(velocity);
+                characterGroup.lookAt(lookTarget);
+            } else {
+                let idleWobble = Math.sin(Date.now() / 300) * 0.05;
+                bodyMesh.scale.set(1 + idleWobble, 1 - idleWobble, 1);
+            }
+
+            let camX = characterGroup.position.x + cameraDistance * Math.sin(cameraAngleY) * Math.sin(cameraAngleX);
+            let camY = characterGroup.position.y + cameraDistance * Math.cos(cameraAngleY);
+            let camZ = characterGroup.position.z + cameraDistance * Math.sin(cameraAngleY) * Math.cos(cameraAngleX);
+
+            camera.position.set(camX, camY, camZ);
+            camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
