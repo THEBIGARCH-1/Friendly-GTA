@@ -3,211 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Friendly City Sandbox - Large Map</title>
+    <title>Mining Drop & Merge Puzzle</title>
     <style>
         body {
             margin: 0;
-            overflow: hidden;
-            background-color: #7ecef4;
+            background: #1a1a2e;
+            color: white;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
             user-select: none;
         }
-        #ui {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px 25px;
+        #game-container {
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 4px solid #16213e;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            pointer-events: none;
+            background: #0f3460;
         }
-        h1 { margin: 0 0 5px 0; font-size: 20px; color: #2c3e50; }
-        p { margin: 3px 0; font-size: 14px; color: #34495e; }
+        canvas {
+            display: block;
+        }
+        .ui {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #e94560;
+        }
     </style>
 </head>
 <body>
 
-    <div id="ui">
-        <h1>Friendly City Sandbox (Big Map)</h1>
-        <p><b>W, A, S, D</b> to drive your car across the expanded city</p>
-    </div>
+    <div class="ui">Score: <span id="score">0</span></div>
+    <div id="game-container"></div>
 
-    <!-- Three.js 3D Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Matter.js Physics Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 
     <script>
-        // --- 1. SCENE SETUP ---
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x7ecef4);
-        scene.fog = new THREE.Fog(0x7ecef4, 50, 250);
+        const { Engine, Render, Runner, Bodies, Composite, Events, Body } = Matter;
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+        // Setup dimensions
+        const width = 400;
+        const height = 600;
 
-        // Lights
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-        scene.add(ambientLight);
+        const engine = Engine.create();
+        const world = engine.world;
 
-        const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        sunLight.position.set(50, 80, 50);
-        scene.add(sunLight);
-
-        // --- 2. LARGE CITY ENVIRONMENT ---
-        const mapSize = 600;
-        const groundGeo = new THREE.PlaneGeometry(mapSize, mapSize);
-        const groundMat = new THREE.MeshLambertMaterial({ color: 0x5cba47 });
-        const ground = new THREE.Mesh(groundGeo, groundMat);
-        ground.rotation.x = -Math.PI / 2;
-        scene.add(ground);
-
-        // Expanded City Road Grid
-        const roadMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
-        for (let i = -250; i <= 250; i += 50) {
-            const roadX = new THREE.Mesh(new THREE.PlaneGeometry(mapSize, 16), roadMat);
-            roadX.rotation.x = -Math.PI / 2;
-            roadX.position.set(0, 0.01, i);
-            scene.add(roadX);
-
-            const roadZ = new THREE.Mesh(new THREE.PlaneGeometry(16, mapSize), roadMat);
-            roadZ.rotation.x = -Math.PI / 2;
-            roadZ.position.set(i, 0.02, 0);
-            scene.add(roadZ);
-        }
-
-        // Dense Buildings Generation
-        const buildingColors = [0xff6b6b, 0x48dbfb, 0x1dd1a1, 0xfeca57, 0xff9ff3, 0x54a0ff, 0xff6b81, 0x7bed9f];
-        for (let x = -225; x <= 225; x += 50) {
-            for (let z = -225; z <= 225; z += 50) {
-                if (Math.abs(x) < 25 || Math.abs(z) < 25) continue; // Keep central crossroads clear
-
-                const width = 28;
-                const depth = 28;
-                const height = 20 + Math.random() * 45;
-                const bGeo = new THREE.BoxGeometry(width, height, depth);
-                const bMat = new THREE.MeshLambertMaterial({ color: buildingColors[Math.floor(Math.random() * buildingColors.length)] });
-                const building = new THREE.Mesh(bGeo, bMat);
-                building.position.set(x, height / 2, z);
-                scene.add(building);
+        const render = Render.create({
+            element: document.getElementById('game-container'),
+            engine: engine,
+            options: {
+                width: width,
+                height: height,
+                wireframes: false,
+                background: '#0f3460'
             }
-        }
+        });
 
-        // --- 3. PEDESTRIANS ---
-        const pedestrians = [];
-        const pedGeo = new THREE.CapsuleGeometry(0.5, 1, 4, 8);
-        const pedMat = new THREE.MeshLambertMaterial({ color: 0xff9f43 });
+        Render.run(render);
+        const runner = Runner.create();
+        Runner.run(runner, engine);
 
-        for (let i = 0; i < 40; i++) {
-            const ped = new THREE.Mesh(pedGeo, pedMat);
-            ped.position.set((Math.random() - 0.5) * 400, 1, (Math.random() - 0.5) * 400);
-            ped.userData = { 
-                direction: new THREE.Vector3((Math.random() - 0.5), 0, (Math.random() - 0.5)).normalize(),
-                speed: 0.04 + Math.random() * 0.04 
-            };
-            scene.add(ped);
-            pedestrians.push(ped);
-        }
+        // Create Container Boundaries
+        const wallOptions = { isStatic: true, render: { fillStyle: '#1a1a2e' } };
+        const ground = Bodies.rectangle(width / 2, height - 10, width, 20, wallOptions);
+        const leftWall = Bodies.rectangle(10, height / 2, 20, height, wallOptions);
+        const rightWall = Bodies.rectangle(width - 10, height / 2, 20, height, wallOptions);
+        Composite.add(world, [ground, leftWall, rightWall]);
 
-        // --- 4. PLAYER CAR ---
-        const carGroup = new THREE.Group();
-        scene.add(carGroup);
-
-        const carBodyGeo = new THREE.BoxGeometry(2.2, 1.1, 4.2);
-        const carBodyMat = new THREE.MeshLambertMaterial({ color: 0xff4757 });
-        const carBody = new THREE.Mesh(carBodyGeo, carBodyMat);
-        carBody.position.y = 0.8;
-        carGroup.add(carBody);
-
-        const carRoofGeo = new THREE.BoxGeometry(1.8, 0.9, 2.0);
-        const carRoofMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-        const carRoof = new THREE.Mesh(carRoofGeo, carRoofMat);
-        carRoof.position.set(0, 1.7, -0.2);
-        carGroup.add(carRoof);
-
-        const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
-        const wheelMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
-        wheelGeo.rotateZ(Math.PI / 2);
-
-        const wheelPositions = [
-            [-1.2, 0.4, 1.4], [1.2, 0.4, 1.4],
-            [-1.2, 0.4, -1.4], [1.2, 0.4, -1.4]
+        // Item Tiers (Radius, Color, Label, Points)
+        const itemsData = [
+            { radius: 15, color: '#b8860b', name: 'Nugget', points: 2 },
+            { radius: 22, color: '#c0c0c0', name: 'Iron', points: 4 },
+            { radius: 30, color: '#ffd700', name: 'Gold', points: 8 },
+            { radius: 40, color: '#00ffff', name: 'Diamond', points: 16 },
+            { radius: 50, color: '#ff4500', name: 'TNT', points: 32 }
         ];
-        wheelPositions.forEach(pos => {
-            const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-            wheel.position.set(...pos);
-            carGroup.add(wheel);
+
+        let score = 0;
+        let currentTier = 0;
+        let canDrop = true;
+        let dropX = width / 2;
+
+        // Mouse movement for dropping
+        const container = document.getElementById('game-container');
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            dropX = e.clientX - rect.left;
+            dropX = Math.max(45, Math.min(width - 45, dropX));
         });
 
-        carGroup.position.set(0, 0, 15);
+        container.addEventListener('click', () => {
+            if (!canDrop) return;
+            canDrop = false;
 
-        // --- 5. CONTROLS ---
-        let keys = { w: false, a: false, s: false, d: false };
-        let speed = 0;
-        let steering = 0;
-        const maxSpeed = 0.45;
-        const acceleration = 0.015;
-        const friction = 0.96;
+            spawnItem(dropX, 50, currentTier);
+            currentTier = Math.floor(Math.random() * 3); // Randomly drop lower tiers
 
-        window.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = true;
-            if (e.key.toLowerCase() === 's') keys.s = true;
-            if (e.key.toLowerCase() === 'a') keys.a = true;
-            if (e.key.toLowerCase() === 'd') keys.d = true;
+            setTimeout(() => {
+                canDrop = true;
+            }, 600);
         });
 
-        window.addEventListener('keyup', (e) => {
-            if (e.key.toLowerCase() === 'w') keys.w = false;
-            if (e.key.toLowerCase() === 's') keys.s = false;
-            if (e.key.toLowerCase() === 'a') keys.a = false;
-            if (e.key.toLowerCase() === 'd') keys.d = false;
-        });
+        function spawnItem(x, y, tier) {
+            const data = itemsData[tier];
+            const body = Bodies.circle(x, y, data.radius, {
+                restitution: 0.3,
+                friction: 0.2,
+                render: { fillStyle: data.color }
+            });
+            body.tier = tier;
+            Composite.add(world, body);
+        }
 
-        // --- 6. GAME LOOP ---
-        function animate() {
-            requestAnimationFrame(animate);
+        // Collision merging logic
+        Events.on(engine, 'collisionStart', (event) => {
+            const pairs = event.pairs;
 
-            if (keys.w) speed = Math.min(speed + acceleration, maxSpeed);
-            if (keys.s) speed = Math.max(speed - acceleration, -maxSpeed * 0.5);
+            pairs.forEach(pair => {
+                const bodyA = pair.bodyA;
+                const bodyB = pair.bodyB;
 
-            speed *= friction;
+                if (bodyA.tier !== undefined && bodyA.tier === bodyB.tier) {
+                    const tier = bodyA.tier;
+                    if (tier < itemsData.length - 1) {
+                        const midX = (bodyA.position.x + bodyB.position.x) / 2;
+                        const midY = (bodyA.position.y + bodyB.position.y) / 2;
 
-            if (keys.a) steering += 0.035;
-            if (keys.d) steering -= 0.035;
+                        // Remove old bodies
+                        Composite.remove(world, bodyA);
+                        Composite.remove(world, bodyB);
 
-            if (Math.abs(speed) > 0.01) {
-                carGroup.rotation.y += steering * (speed > 0 ? 1 : -1);
-            }
+                        // Spawn next tier
+                        spawnItem(midX, midY, tier + 1);
 
-            carGroup.translateZ(speed);
-
-            // Pedestrian Movement & Loop
-            pedestrians.forEach(ped => {
-                ped.position.addScaledVector(ped.userData.direction, ped.userData.speed);
-                if (Math.abs(ped.position.x) > 280 || Math.abs(ped.position.z) > 280) {
-                    ped.userData.direction.negate();
+                        // Update Score
+                        score += itemsData[tier].points * 2;
+                        document.getElementById('score').innerText = score;
+                    }
                 }
             });
-
-            // Smooth Chase Camera
-            let targetCamPos = new THREE.Vector3(
-                carGroup.position.x - Math.sin(carGroup.rotation.y) * 14,
-                carGroup.position.y + 7,
-                carGroup.position.z - Math.cos(carGroup.rotation.y) * 14
-            );
-            camera.position.lerp(targetCamPos, 0.1);
-            camera.lookAt(carGroup.position.x, carGroup.position.y + 1, carGroup.position.z);
-
-            renderer.render(scene, camera);
-        }
-
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
 </body>
