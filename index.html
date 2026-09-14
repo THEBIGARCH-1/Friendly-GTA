@@ -3,154 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mining Drop & Merge Puzzle</title>
+    <title>Perfection Puzzle Game</title>
     <style>
         body {
             margin: 0;
-            background: #1a1a2e;
-            color: white;
+            background: #2c3e50;
+            color: #ecf0f1;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            overflow: hidden;
             user-select: none;
         }
         #game-container {
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 4px solid #16213e;
+            width: 500px;
+            height: 400px;
+            background: #34495e;
             border-radius: 12px;
-            background: #0f3460;
-        }
-        canvas {
-            display: block;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .ui {
-            position: absolute;
-            top: 15px;
-            left: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        h1 { margin: 0 0 5px 0; font-size: 22px; color: #f1c40f; }
+        p { margin: 0; font-size: 14px; color: #bdc3c7; }
+        
+        .slot {
+            width: 90px;
+            height: 90px;
+            border: 3px dashed #7f8c8d;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.1);
+        }
+        
+        .item {
+            width: 75px;
+            height: 75px;
+            border-radius: 8px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+        .item:active { cursor: grabbing; transform: scale(1.05); }
+
+        #message {
+            margin-top: 15px;
             font-size: 18px;
             font-weight: bold;
-            color: #e94560;
+            color: #2ecc71;
+            height: 25px;
         }
     </style>
 </head>
 <body>
 
-    <div class="ui">Score: <span id="score">0</span></div>
-    <div id="game-container"></div>
+    <div class="ui">
+        <h1 id="level-title">Level 1: Color Order</h1>
+        <p>Drag each item into its matching slot to achieve perfection!</p>
+    </div>
 
-    <!-- Matter.js Physics Engine -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <div id="game-container">
+        <div id="slots-area" style="display: flex; gap: 20px;"></div>
+        <div id="items-area" style="display: flex; gap: 20px; flex-direction: column;"></div>
+    </div>
+
+    <div id="message"></div>
 
     <script>
-        const { Engine, Render, Runner, Bodies, Composite, Events, Body } = Matter;
-
-        // Setup dimensions
-        const width = 400;
-        const height = 600;
-
-        const engine = Engine.create();
-        const world = engine.world;
-
-        const render = Render.create({
-            element: document.getElementById('game-container'),
-            engine: engine,
-            options: {
-                width: width,
-                height: height,
-                wireframes: false,
-                background: '#0f3460'
+        // Data for multiple levels (Easily expandable up to 100+ levels)
+        const levels = [
+            {
+                title: "Level 1: Primary Colors",
+                items: [
+                    { id: 'red', name: 'Red Gem', color: '#e74c3c' },
+                    { id: 'blue', name: 'Blue Gem', color: '#3498db' },
+                    { id: 'green', name: 'Green Gem', color: '#2ecc71' }
+                ],
+                slots: ['red', 'blue', 'green']
+            },
+            {
+                title: "Level 2: Shape & Shade",
+                items: [
+                    { id: 'purple', name: 'Amethyst', color: '#9b59b6' },
+                    { id: 'orange', name: 'Topaz', color: '#e67e22' },
+                    { id: 'yellow', name: 'Citrine', color: '#f1c40f' }
+                ],
+                slots: ['orange', 'yellow', 'purple']
+            },
+            {
+                title: "Level 3: Deep Elements",
+                items: [
+                    { id: 'dark', name: 'Obsidian', color: '#2c3e50' },
+                    { id: 'teal', name: 'Diamond', color: '#1abc9c' },
+                    { id: 'pink', name: 'Quartz', color: '#ff7675' }
+                ],
+                slots: ['pink', 'dark', 'teal']
             }
-        });
-
-        Render.run(render);
-        const runner = Runner.create();
-        Runner.run(runner, engine);
-
-        // Create Container Boundaries
-        const wallOptions = { isStatic: true, render: { fillStyle: '#1a1a2e' } };
-        const ground = Bodies.rectangle(width / 2, height - 10, width, 20, wallOptions);
-        const leftWall = Bodies.rectangle(10, height / 2, 20, height, wallOptions);
-        const rightWall = Bodies.rectangle(width - 10, height / 2, 20, height, wallOptions);
-        Composite.add(world, [ground, leftWall, rightWall]);
-
-        // Item Tiers (Radius, Color, Label, Points)
-        const itemsData = [
-            { radius: 15, color: '#b8860b', name: 'Nugget', points: 2 },
-            { radius: 22, color: '#c0c0c0', name: 'Iron', points: 4 },
-            { radius: 30, color: '#ffd700', name: 'Gold', points: 8 },
-            { radius: 40, color: '#00ffff', name: 'Diamond', points: 16 },
-            { radius: 50, color: '#ff4500', name: 'TNT', points: 32 }
+            // You can continue adding levels up to 100+ here!
         ];
 
-        let score = 0;
-        let currentTier = 0;
-        let canDrop = true;
-        let dropX = width / 2;
+        let currentLevel = 0;
+        const slotsArea = document.getElementById('slots-area');
+        const itemsArea = document.getElementById('items-area');
+        const levelTitle = document.getElementById('level-title');
+        const message = document.getElementById('message');
 
-        // Mouse movement for dropping
-        const container = document.getElementById('game-container');
-        container.addEventListener('mousemove', (e) => {
-            const rect = container.getBoundingClientRect();
-            dropX = e.clientX - rect.left;
-            dropX = Math.max(45, Math.min(width - 45, dropX));
-        });
+        function loadLevel(index) {
+            if (index >= levels.length) {
+                levelTitle.innerText = "Congratulations!";
+                document.getElementById('game-container').innerHTML = "<h2 style='color:#f1c40f;'>You completed all available perfection levels!</h2>";
+                return;
+            }
 
-        container.addEventListener('click', () => {
-            if (!canDrop) return;
-            canDrop = false;
+            const lvl = levels[index];
+            levelTitle.innerText = lvl.title;
+            slotsArea.innerHTML = '';
+            itemsArea.innerHTML = '';
+            message.innerText = '';
 
-            spawnItem(dropX, 50, currentTier);
-            currentTier = Math.floor(Math.random() * 3); // Randomly drop lower tiers
+            // Create randomized slots
+            let targetSlots = [...lvl.slots];
+            // Shuffle slots for a puzzle challenge
+            targetSlots.sort(() => Math.random() - 0.5);
 
-            setTimeout(() => {
-                canDrop = true;
-            }, 600);
-        });
+            targetSlots.forEach(slotId => {
+                const slot = document.createElement('div');
+                slot.className = 'slot';
+                slot.dataset.target = slotId;
+                
+                // Visual indicator of target color
+                const targetData = lvl.items.find(i => i.id === slotId);
+                slot.style.borderColor = targetData.color;
 
-        function spawnItem(x, y, tier) {
-            const data = itemsData[tier];
-            const body = Bodies.circle(x, y, data.radius, {
-                restitution: 0.3,
-                friction: 0.2,
-                render: { fillStyle: data.color }
+                slot.addEventListener('dragover', (e) => e.preventDefault());
+                slot.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const draggedId = e.dataTransfer.getData('text/plain');
+                    if (draggedId === slotId && slot.children.length === 0) {
+                        const draggedElement = document.getElementById(draggedId);
+                        slot.appendChild(draggedElement);
+                        draggedElement.setAttribute('draggable', 'false');
+                        checkWin();
+                    }
+                });
+
+                slotsArea.appendChild(slot);
             });
-            body.tier = tier;
-            Composite.add(world, body);
+
+            // Create randomized items to drag
+            let shuffledItems = [...lvl.items].sort(() => Math.random() - 0.5);
+            shuffledItems.forEach(itemData => {
+                const item = document.createElement('div');
+                item.className = 'item';
+                item.id = itemData.id;
+                item.innerText = itemData.name;
+                item.style.backgroundColor = itemData.color;
+                item.setAttribute('draggable', 'true');
+
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', itemData.id);
+                });
+
+                itemsArea.appendChild(item);
+            });
         }
 
-        // Collision merging logic
-        Events.on(engine, 'collisionStart', (event) => {
-            const pairs = event.pairs;
-
-            pairs.forEach(pair => {
-                const bodyA = pair.bodyA;
-                const bodyB = pair.bodyB;
-
-                if (bodyA.tier !== undefined && bodyA.tier === bodyB.tier) {
-                    const tier = bodyA.tier;
-                    if (tier < itemsData.length - 1) {
-                        const midX = (bodyA.position.x + bodyB.position.x) / 2;
-                        const midY = (bodyA.position.y + bodyB.position.y) / 2;
-
-                        // Remove old bodies
-                        Composite.remove(world, bodyA);
-                        Composite.remove(world, bodyB);
-
-                        // Spawn next tier
-                        spawnItem(midX, midY, tier + 1);
-
-                        // Update Score
-                        score += itemsData[tier].points * 2;
-                        document.getElementById('score').innerText = score;
-                    }
-                }
+        function checkWin() {
+            const slots = document.querySelectorAll('.slot');
+            let allFilled = true;
+            slots.forEach(slot => {
+                if (slot.children.length === 0) allFilled = false;
             });
-        });
+
+            if (allFilled) {
+                message.innerText = "✨ Perfect! Loading next level... ✨";
+                setTimeout(() => {
+                    currentLevel++;
+                    loadLevel(currentLevel);
+                }, 1200);
+            }
+        }
+
+        // Initialize game
+        loadLevel(currentLevel);
     </script>
 </body>
 </html>
