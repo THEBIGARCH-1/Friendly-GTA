@@ -3,257 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workshop Master: Multi-Puzzle Challenge</title>
+    <title>Ultimate Satisfying Studio: Pop-It, Slime & Tie-Dye</title>
     <style>
         body {
             margin: 0;
-            background: #1b1b2f;
-            color: #eaeaea;
+            background: #1a1a2e;
+            color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
+            justify-content: flex-start;
+            min-height: 100vh;
+            overflow-x: hidden;
             user-select: none;
         }
-        #game-board {
-            width: 600px;
-            height: 400px;
+        header {
+            text-align: center;
+            margin: 15px 0;
+        }
+        h1 { margin: 0; font-size: 24px; color: #ff758c; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        p { margin: 5px 0 0 0; font-size: 14px; color: #a2a8d3; }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
             background: #162447;
-            border: 6px solid #1f4068;
-            border-radius: 14px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            position: relative;
+            color: #fff;
+            border: 2px solid #1f4068;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: #ff758c;
+            border-color: #ff758c;
+            box-shadow: 0 0 10px rgba(255, 117, 140, 0.5);
+        }
+
+        .studio-container {
+            width: 500px;
+            height: 420px;
+            background: #162447;
+            border: 4px solid #1f4068;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
             box-sizing: border-box;
         }
-        .header-ui {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        h1 { margin: 0 0 5px 0; font-size: 22px; color: #e43f5a; }
-        p { margin: 0; font-size: 14px; color: #a4b3b6; }
-        
-        /* Puzzle 1: Shape Fitting */
-        .shape-container { display: flex; gap: 20px; width: 100%; justify-content: space-around; }
-        .slot, .piece {
-            width: 110px; height: 90px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 13px; text-align: center;
-        }
-        .slot { border: 3px dashed #e43f5a; background: rgba(228, 63, 90, 0.1); }
-        .piece { background: #e43f5a; color: white; cursor: grab; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
-        /* Puzzle 2: Wire Connecting */
-        .wire-grid { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 400px; }
-        .wire-row { display: flex; justify-content: space-between; align-items: center; background: #1f4068; padding: 10px 15px; border-radius: 8px; }
-        .wire-btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
-
-        /* Puzzle 3: Word Unscramble */
-        .letter-container { display: flex; gap: 12px; margin-top: 20px; }
-        .letter-tile {
-            width: 50px; height: 50px; background: #0f4c81; border: 2px solid #5bc0be;
-            border-radius: 6px; display: flex; align-items: center; justify-content: center;
-            font-size: 20px; font-weight: bold; cursor: pointer; color: white;
+        /* Pop It Styles */
+        .pop-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
         }
-        .target-box { display: flex; gap: 10px; min-height: 60px; align-items: center; margin-bottom: 15px; }
-        .drop-spot { width: 50px; height: 50px; border: 2px dashed #eaeaea; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; }
+        .pop-bubble {
+            width: 75px;
+            height: 75px;
+            background: radial-gradient(circle at 30% 30%, #ff9a8b, #ff6a88);
+            border-radius: 50%;
+            border: none;
+            box-shadow: inset 0 5px 10px rgba(255,255,255,0.6), 0 6px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .pop-bubble.popped {
+            background: radial-gradient(circle at 70% 70%, #ff6a88, #b721ff);
+            box-shadow: inset 0 -5px 10px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.2);
+            transform: scale(0.92);
+        }
 
-        #message { margin-top: 15px; font-size: 16px; font-weight: bold; color: #4ecca3; height: 25px; }
+        /* Slime Styles */
+        #slime-canvas {
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+
+        /* Tie-Dye Styles */
+        .tie-dye-swatch {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #ff4757, #ffa502, #2ed573, #1e90ff, #9b59b6, #ff4757);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            animation: spinSwirl 10s linear infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tie-dye-inner {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, #ffffff, #ff6b81);
+            border-radius: 50%;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.3);
+        }
+        @keyframes spinSwirl {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.05); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .action-btn {
+            background: #0f3460;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .action-btn:hover { background: #e94560; }
     </style>
 </head>
 <body>
 
-    <div class="header-ui">
-        <h1 id="puzzle-title">Puzzle 1: Wood Shape Fitting</h1>
-        <p id="puzzle-instructions">Drag the correct timber shapes into their designated slots.</p>
+    <header>
+        <h1>Satisfying ASMR Studio</h1>
+        <p>Pop-it bubbles, squishy slime, and dynamic tie-dye patterns!</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('popit')">Pop-It</button>
+        <button class="tab-btn" onclick="switchTab('slime')">Squishy Slime</button>
+        <button class="tab-btn" onclick="switchTab('tiedye')">Tie-Dye Wheel</button>
     </div>
 
-    <div id="game-board"></div>
-    <div id="message"></div>
+    <div class="studio-container" id="studio">
+        <!-- Dynamic Content Injected Here -->
+    </div>
+
+    <div class="controls" id="controls-area">
+        <button class="action-btn" onclick="resetStudio()">Reset / Mix</button>
+    </div>
 
     <script>
-        let currentStage = 1;
-        const board = document.getElementById('game-board');
-        const title = document.getElementById('puzzle-title');
-        const instructions = document.getElementById('puzzle-instructions');
-        const message = document.getElementById('message');
+        let currentMode = 'popit';
 
-        function loadStage(stage) {
-            board.innerHTML = '';
-            message.innerHTML = '';
+        function switchTab(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderStudio();
+        }
 
-            if (stage === 1) {
-                // PUZZLE 1: Shape Fitting (Grid/Row based)
-                title.innerText = "Puzzle 1: Timber Shape Fitting";
-                instructions.innerText = "Match the customized blocks to their correct cutout profiles.";
+        function renderStudio() {
+            const studio = document.getElementById('studio');
+            studio.innerHTML = '';
 
-                let container = document.createElement('div');
-                container.className = 'shape-container';
-                
-                let slotsDiv = document.createElement('div');
-                slotsDiv.style.display = "flex"; slotsDiv.style.flexDirection = "column"; slotsDiv.style.gap = "10px";
-                let piecesDiv = document.createElement('div');
-                piecesDiv.style.display = "flex"; piecesDiv.style.flexDirection = "column"; piecesDiv.style.gap = "10px";
-
-                let shapes = [
-                    { id: 'sq', name: 'Square Block' },
-                    { id: 'tri', name: 'Triangle Wedge' },
-                    { id: 'cir', name: 'Cylinder Dowel' }
-                ];
-
-                let shuffledShapes = [...shapes].sort(() => Math.random() - 0.5);
-
-                shapes.forEach(s => {
-                    let slot = document.createElement('div');
-                    slot.className = 'slot';
-                    slot.dataset.target = s.id;
-                    slot.innerText = `Slot: ${s.name}`;
-                    slot.addEventListener('dragover', e => e.preventDefault());
-                    slot.addEventListener('drop', e => {
-                        e.preventDefault();
-                        let id = e.dataTransfer.getData('text');
-                        if (id === s.id && slot.children.length === 0) {
-                            slot.appendChild(document.getElementById(id));
-                            checkPuzzle1Win();
-                        }
-                    });
-                    slotsDiv.appendChild(slot);
-                });
-
-                shuffledShapes.forEach(s => {
-                    let piece = document.createElement('div');
-                    piece.className = 'piece';
-                    piece.id = s.id;
-                    piece.innerText = s.name;
-                    piece.setAttribute('draggable', 'true');
-                    piece.addEventListener('dragstart', e => e.dataTransfer.setData('text', s.id));
-                    piecesDiv.appendChild(piece);
-                });
-
-                container.appendChild(slotsDiv);
-                container.appendChild(piecesDiv);
-                board.appendChild(container);
-
-            } else if (stage === 2) {
-                // PUZZLE 2: Circuit / Wire Connection
-                title.innerText = "Puzzle 2: Workshop Circuit Link";
-                instructions.innerText = "Connect the matching colored wires to power up the table saw.";
-
+            if (currentMode === 'popit') {
                 let grid = document.createElement('div');
-                grid.className = 'wire-grid';
-
-                let colors = [
-                    { name: 'Power Line (Red)', color: '#e43f5a', connected: false },
-                    { name: 'Ground Line (Blue)', color: '#3a86ff', connected: false },
-                    { name: 'Safety Line (Green)', color: '#38b000', connected: false }
-                ];
-
-                colors.sort(() => Math.random() - 0.5);
-
-                colors.forEach((c, index) => {
-                    let row = document.createElement('div');
-                    row.className = 'wire-row';
-                    
-                    let label = document.createElement('span');
-                    label.innerText = c.name;
-                    label.style.fontWeight = 'bold';
-
-                    let btn = document.createElement('button');
-                    btn.className = 'wire-btn';
-                    btn.style.backgroundColor = c.color;
-                    btn.innerText = "Link Wire";
-                    
-                    btn.onclick = () => {
-                        btn.innerText = "Linked ✓";
-                        btn.style.backgroundColor = "#555";
-                        btn.disabled = true;
-                        c.connected = true;
-                        
-                        if (colors.every(item => item.connected)) {
-                            message.innerText = "⚡ Power Restored! Loading next puzzle... ⚡";
-                            setTimeout(() => { currentStage++; loadStage(currentStage); }, 1400);
-                        }
+                grid.className = 'pop-grid';
+                for (let i = 0; i < 12; i++) {
+                    let bubble = document.createElement('button');
+                    bubble.className = 'pop-bubble';
+                    bubble.onclick = () => {
+                        bubble.classList.toggle('popped');
+                        playPopSound();
                     };
-
-                    row.appendChild(label);
-                    row.appendChild(btn);
-                    grid.appendChild(row);
-                });
-
-                board.appendChild(grid);
-
-            } else if (stage === 3) {
-                // PUZZLE 3: Word Unscramble (Wood Tool)
-                title.innerText = "Puzzle 3: Carpentry Word Unscramble";
-                instructions.innerText = "Click the letters in the correct order to spell the tool: **CHISEL**";
-
-                let targetWord = "CHISEL";
-                let scrambled = "LIHSCE".split('').sort(() => Math.random() - 0.5);
-                
-                let targetBox = document.createElement('div');
-                targetBox.className = 'target-box';
-                let currentInput = [];
-
-                for (let i = 0; i < targetWord.length; i++) {
-                    let spot = document.createElement('div');
-                    spot.className = 'drop-spot';
-                    spot.id = `spot-${i}`;
-                    targetBox.appendChild(spot);
+                    grid.appendChild(bubble);
                 }
-                board.appendChild(targetBox);
-
-                let letterContainer = document.createElement('div');
-                letterContainer.className = 'letter-container';
-
-                scrambled.forEach((char, index) => {
-                    let tile = document.createElement('div');
-                    tile.className = 'letter-tile';
-                    tile.innerText = char;
-                    tile.onclick = () => {
-                        if (currentInput.length < targetWord.length) {
-                            currentInput.push(char);
-                            tile.style.visibility = 'hidden';
-                            tile.dataset.used = "true";
-                            
-                            // Update display spot
-                            document.getElementById(`spot-${currentInput.length - 1}`).innerText = char;
-
-                            if (currentInput.length === targetWord.length) {
-                                let formed = currentInput.join('');
-                                if (formed === targetWord) {
-                                    message.innerText = "🔨 Word Solved! Workshop Mastered! 🔨";
-                                } else {
-                                    message.innerText = "❌ Incorrect spelling, resetting...";
-                                    setTimeout(() => loadStage(3), 1200);
-                                }
-                            }
-                        }
-                    };
-                    letterContainer.appendChild(tile);
-                });
-
-                board.appendChild(letterContainer);
+                studio.appendChild(grid);
+            } 
+            else if (currentMode === 'slime') {
+                let canvas = document.createElement('canvas');
+                canvas.id = 'slime-canvas';
+                studio.appendChild(canvas);
+                initSlime(canvas);
+            } 
+            else if (currentMode === 'tiedye') {
+                let wrap = document.createElement('div');
+                wrap.className = 'tie-dye-swatch';
+                let inner = document.createElement('div');
+                inner.className = 'tie-dye-inner';
+                wrap.appendChild(inner);
+                studio.appendChild(wrap);
             }
         }
 
-        function checkPuzzle1Win() {
-            let slots = document.querySelectorAll('.slot');
-            let filled = true;
-            slots.forEach(s => { if (s.children.length === 0) filled = false; });
-            if (filled) {
-                message.innerText = "✨ Perfect Fit! Loading next puzzle... ✨";
-                setTimeout(() => { currentStage++; loadStage(currentStage); }, 1400);
-            }
+        // Simple Web Audio API pop sound generator
+        function playPopSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.05);
+            } catch(e) {}
         }
 
-        // Start game
-        loadStage(currentStage);
+        // Slime Interactive Blob Simulation
+        function initSlime(canvas) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+
+            let blobX = canvas.width / 2;
+            let blobY = canvas.height / 2;
+            let radius = 90;
+            let targetRadius = 90;
+            let squishColor = '#ff758c';
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                let mouseX = e.clientX - rect.left;
+                let mouseY = e.clientY - rect.top;
+                let dist = Math.hypot(mouseX - blobX, mouseY - blobY);
+                if (dist < radius) {
+                    targetRadius = 115;
+                } else {
+                    targetRadius = 90;
+                }
+            });
+
+            canvas.addEventListener('mouseleave', () => { targetRadius = 90; });
+            canvas.addEventListener('click', () => {
+                targetRadius = 60;
+                squishColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+                setTimeout(() => targetRadius = 90, 150);
+            });
+
+            function animateSlime() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                radius += (targetRadius - radius) * 0.15;
+
+                ctx.fillStyle = squishColor;
+                ctx.beginPath();
+                ctx.arc(blobX, blobY, radius, 0, Math.PI * 2);
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = squishColor;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                requestAnimationFrame(animateSlime);
+            }
+            animateSlime();
+        }
+
+        function resetStudio() {
+            renderStudio();
+        }
+
+        // Initial Load
+        renderStudio();
     </script>
 </body>
 </html>
