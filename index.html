@@ -3,275 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Satisfying Studio: Pop-It, Slime & Tie-Dye</title>
+    <title>Elastic Morty Face Simulator</title>
     <style>
         body {
             margin: 0;
-            background: #1a1a2e;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            overflow-x: hidden;
+            overflow: hidden;
+            background: #111;
+            font-family: Arial, sans-serif;
             user-select: none;
         }
-        header {
+        #instructions {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #888;
+            font-size: 14px;
+            pointer-events: none;
             text-align: center;
-            margin: 15px 0;
+            z-index: 10;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
-        h1 { margin: 0; font-size: 24px; color: #ff758c; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-        p { margin: 5px 0 0 0; font-size: 14px; color: #a2a8d3; }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .tab-btn {
-            background: #162447;
-            color: #fff;
-            border: 2px solid #1f4068;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-        }
-        .tab-btn.active {
-            background: #ff758c;
-            border-color: #ff758c;
-            box-shadow: 0 0 10px rgba(255, 117, 140, 0.5);
-        }
-
-        .studio-container {
-            width: 500px;
-            height: 420px;
-            background: #162447;
-            border: 4px solid #1f4068;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        /* Pop It Styles */
-        .pop-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-        }
-        .pop-bubble {
-            width: 75px;
-            height: 75px;
-            background: radial-gradient(circle at 30% 30%, #ff9a8b, #ff6a88);
-            border-radius: 50%;
-            border: none;
-            box-shadow: inset 0 5px 10px rgba(255,255,255,0.6), 0 6px 10px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
-        .pop-bubble.popped {
-            background: radial-gradient(circle at 70% 70%, #ff6a88, #b721ff);
-            box-shadow: inset 0 -5px 10px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.2);
-            transform: scale(0.92);
-        }
-
-        /* Slime Styles */
-        #slime-canvas {
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-            border-radius: 10px;
-        }
-
-        /* Tie-Dye Styles */
-        .tie-dye-swatch {
-            width: 250px;
-            height: 250px;
-            border-radius: 50%;
-            background: conic-gradient(from 0deg, #ff4757, #ffa502, #2ed573, #1e90ff, #9b59b6, #ff4757);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            animation: spinSwirl 10s linear infinite;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .tie-dye-inner {
-            width: 120px;
-            height: 120px;
-            background: radial-gradient(circle, #ffffff, #ff6b81);
-            border-radius: 50%;
-            box-shadow: inset 0 4px 8px rgba(0,0,0,0.3);
-        }
-        @keyframes spinSwirl {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.05); }
-            100% { transform: rotate(360deg) scale(1); }
-        }
-
-        .controls {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-        .action-btn {
-            background: #0f3460;
-            color: #fff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .action-btn:hover { background: #e94560; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Satisfying ASMR Studio</h1>
-        <p>Pop-it bubbles, squishy slime, and dynamic tie-dye patterns!</p>
-    </header>
+    <div id="instructions">Click and drag anywhere on Morty's face to stretch and squish!</div>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('popit')">Pop-It</button>
-        <button class="tab-btn" onclick="switchTab('slime')">Squishy Slime</button>
-        <button class="tab-btn" onclick="switchTab('tiedye')">Tie-Dye Wheel</button>
-    </div>
-
-    <div class="studio-container" id="studio">
-        <!-- Dynamic Content Injected Here -->
-    </div>
-
-    <div class="controls" id="controls-area">
-        <button class="action-btn" onclick="resetStudio()">Reset / Mix</button>
-    </div>
+    <!-- Three.js for 3D graphics -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        let currentMode = 'popit';
+        // --- 1. SCENE SETUP ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
 
-        function switchTab(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            renderStudio();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 6;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Lighting to give 3D depth to Morty's face
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 5, 5);
+        scene.add(dirLight);
+
+        const backLight = new THREE.DirectionalLight(0x77bbff, 0.4);
+        backLight.position.set(-5, -5, -5);
+        scene.add(backLight);
+
+        // --- 2. CREATE ELASTIC MORTY HEAD MESH ---
+        // High density sphere mesh to allow vertex stretching physics
+        const geometry = new THREE.SphereGeometry(1.6, 32, 32);
+        
+        // Save original vertex positions to calculate elastic snap-back spring forces
+        const positionAttribute = geometry.attributes.position;
+        const originalPositions = [];
+        for (let i = 0; i < positionAttribute.count; i++) {
+            originalPositions.push(new THREE.Vector3(
+                positionAttribute.getX(i),
+                positionAttribute.getY(i),
+                positionAttribute.getZ(i)
+            ));
         }
 
-        function renderStudio() {
-            const studio = document.getElementById('studio');
-            studio.innerHTML = '';
-
-            if (currentMode === 'popit') {
-                let grid = document.createElement('div');
-                grid.className = 'pop-grid';
-                for (let i = 0; i < 12; i++) {
-                    let bubble = document.createElement('button');
-                    bubble.className = 'pop-bubble';
-                    bubble.onclick = () => {
-                        bubble.classList.toggle('popped');
-                        playPopSound();
-                    };
-                    grid.appendChild(bubble);
-                }
-                studio.appendChild(grid);
-            } 
-            else if (currentMode === 'slime') {
-                let canvas = document.createElement('canvas');
-                canvas.id = 'slime-canvas';
-                studio.appendChild(canvas);
-                initSlime(canvas);
-            } 
-            else if (currentMode === 'tiedye') {
-                let wrap = document.createElement('div');
-                wrap.className = 'tie-dye-swatch';
-                let inner = document.createElement('div');
-                inner.className = 'tie-dye-inner';
-                wrap.appendChild(inner);
-                studio.appendChild(wrap);
-            }
-        }
-
-        // Simple Web Audio API pop sound generator
-        function playPopSound() {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.05);
-                gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.05);
-            } catch(e) {}
-        }
-
-        // Slime Interactive Blob Simulation
-        function initSlime(canvas) {
+        // Canvas texture generator for Morty's iconic face features
+        function createMortyTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 1024;
             const ctx = canvas.getContext('2d');
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
 
-            let blobX = canvas.width / 2;
-            let blobY = canvas.height / 2;
-            let radius = 90;
-            let targetRadius = 90;
-            let squishColor = '#ff758c';
+            // Skin background (Morty's peach tone)
+            ctx.fillStyle = '#ffdfb1';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            canvas.addEventListener('mousemove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                let mouseX = e.clientX - rect.left;
-                let mouseY = e.clientY - rect.top;
-                let dist = Math.hypot(mouseX - blobX, mouseY - blobY);
-                if (dist < radius) {
-                    targetRadius = 115;
-                } else {
-                    targetRadius = 90;
+            // Hair (Brown messy tufts on top)
+            ctx.fillStyle = '#8b4513';
+            ctx.beginPath();
+            ctx.arc(512, 180, 240, Math.PI, 0, false);
+            ctx.fill();
+            // Hair spikes overlay
+            ctx.beginPath();
+            ctx.moveTo(300, 200); ctx.lineTo(250, 100); ctx.lineTo(380, 150);
+            ctx.lineTo(512, 80); ctx.lineTo(644, 150); ctx.lineTo(774, 100); ctx.lineTo(724, 200);
+            ctx.fill();
+
+            // Big Goofy Eyes (White circles with black pupils)
+            // Left Eye
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(400, 480, 110, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+
+            // Right Eye
+            ctx.beginPath();
+            ctx.arc(624, 480, 110, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+
+            // Pupils (Anxious black dots)
+            ctx.fillStyle = '#000000';
+            ctx.beginPath(); ctx.arc(420, 480, 30, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(604, 480, 30, 0, Math.PI * 2); ctx.fill();
+
+            // Nose (Classic rounded bump)
+            ctx.strokeStyle = '#b8860b';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(512, 570, 45, 0.2, Math.PI - 0.2, false);
+            ctx.stroke();
+
+            // Anxious Morty Mouth (Wavy line / open panic mouth)
+            ctx.fillStyle = '#660000';
+            ctx.beginPath();
+            ctx.ellipse(512, 730, 70, 40, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Rosy Cheeks
+            ctx.fillStyle = 'rgba(255, 100, 100, 0.3)';
+            ctx.beginPath(); ctx.arc(310, 600, 60, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(714, 600, 60, 0, Math.PI * 2); ctx.fill();
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const material = new THREE.MeshStandardMaterial({
+            map: createMortyTexture(),
+            roughness: 0.4,
+            metalness: 0.1
+        });
+
+        const mortyHead = new THREE.Mesh(geometry, material);
+        scene.add(mortyHead);
+
+        // --- 3. INTERACTION & SOFT-BODY ELASTIC PHYSICS ---
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let isDragging = false;
+        let selectedVertexIndex = null;
+        let dragPlane = new THREE.Plane();
+        let intersectionPoint = new THREE.Vector3();
+
+        window.addEventListener('pointerdown', (e) => {
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(mortyHead);
+
+            if (intersects.length > 0) {
+                isDragging = true;
+                const intersect = intersects[0];
+                
+                // Find closest vertex to click point for elastic dragging
+                const posAttr = mortyHead.geometry.attributes.position;
+                let closestDist = Infinity;
+                let closestIdx = 0;
+
+                const localPoint = mortyHead.worldToLocal(intersect.point.clone());
+
+                for (let i = 0; i < posAttr.count; i++) {
+                    const vx = posAttr.getX(i);
+                    const vy = posAttr.getY(i);
+                    const vz = posAttr.getZ(i);
+                    const dist = Math.hypot(vx - localPoint.x, vy - localPoint.y, vz - localPoint.z);
+                    if (dist < closestDist) {
+                        closestDist = dist;
+                        closestIdx = i;
+                    }
                 }
-            });
 
-            canvas.addEventListener('mouseleave', () => { targetRadius = 90; });
-            canvas.addEventListener('click', () => {
-                targetRadius = 60;
-                squishColor = '#' + Math.floor(Math.random()*16777215).toString(16);
-                setTimeout(() => targetRadius = 90, 150);
-            });
-
-            function animateSlime() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                radius += (targetRadius - radius) * 0.15;
-
-                ctx.fillStyle = squishColor;
-                ctx.beginPath();
-                ctx.arc(blobX, blobY, radius, 0, Math.PI * 2);
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = squishColor;
-                ctx.fill();
-                ctx.shadowBlur = 0;
-
-                requestAnimationFrame(animateSlime);
+                selectedVertexIndex = closestIdx;
+                dragPlane.setFromNormalAndCoplanarPoint(camera.getWorldDirection(new THREE.Vector3()).negate(), intersect.point);
             }
-            animateSlime();
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+            if (isDragging && selectedVertexIndex !== null) {
+                raycaster.setFromCamera(mouse, camera);
+                raycaster.ray.intersectPlane(dragPlane, intersectionPoint);
+            }
+        });
+
+        window.addEventListener('pointerup', () => {
+            isDragging = false;
+            selectedVertexIndex = null;
+        });
+
+        // --- 4. GAME LOOP & SPRING PHYSICS ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const posAttr = mortyHead.geometry.attributes.position;
+
+            // Optional subtle idle breathing rotation
+            if (!isDragging) {
+                mortyHead.rotation.y = Math.sin(Date.now() * 0.002) * 0.1;
+                mortyHead.rotation.x = Math.cos(Date.now() * 0.0015) * 0.05;
+            }
+
+            // Vertex deformation simulation loop
+            for (let i = 0; i < posAttr.count; i++) {
+                const orig = originalPositions[i];
+                
+                // Current position in world space transformed back or simulated directly
+                let vx = posAttr.getX(i);
+                let vy = posAttr.getY(i);
+                let vz = posAttr.getZ(i);
+
+                let currentPos = new THREE.Vector3(vx, vy, vz);
+
+                if (isDragging && selectedVertexIndex !== null) {
+                    // Pull vertices near the grabbed node (Soft-body radius falloff)
+                    const grabbedOrig = originalPositions[selectedVertexIndex];
+                    const distToGrab = orig.distanceTo(grabbedOrig);
+                    const influenceRadius = 1.2;
+
+                    if (distToGrab < influenceRadius) {
+                        let factor = 1 - (distToGrab / influenceRadius);
+                        let localTarget = mortyHead.worldToLocal(intersectionPoint.clone());
+                        
+                        let targetX = THREE.MathUtils.lerp(orig.x, localTarget.x, factor);
+                        let targetY = THREE.MathUtils.lerp(orig.y, localTarget.y, factor);
+                        let targetZ = THREE.MathUtils.lerp(orig.z, localTarget.z, factor);
+
+                        currentPos.x += (targetX - currentPos.x) * 0.4;
+                        currentPos.y += (targetY - currentPos.y) * 0.4;
+                        currentPos.z += (targetZ - currentPos.z) * 0.4;
+                    }
+                }
+
+                // Spring physics snap back to original anatomical position
+                currentPos.x += (orig.x - currentPos.x) * 0.12;
+                currentPos.y += (orig.y - currentPos.y) * 0.12;
+                currentPos.z += (orig.z - currentPos.z) * 0.12;
+
+                posAttr.setXYZ(i, currentPos.x, currentPos.y, currentPos.z);
+            }
+
+            posAttr.needsUpdate = true;
+            mortyHead.geometry.computeVertexNormals();
+
+            renderer.render(scene, camera);
         }
 
-        function resetStudio() {
-            renderStudio();
-        }
+        animate();
 
-        // Initial Load
-        renderStudio();
+        // Handle window resizing cleanly
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
