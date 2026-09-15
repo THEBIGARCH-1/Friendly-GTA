@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timber Craft: Precision Wood Puzzles</title>
+    <title>Workshop Master: Multi-Puzzle Challenge</title>
     <style>
         body {
             margin: 0;
-            background: #1e1512;
-            color: #f4e8c1;
+            background: #1b1b2f;
+            color: #eaeaea;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
@@ -17,232 +17,243 @@
             height: 100vh;
             user-select: none;
         }
-        #workbench {
-            width: 650px;
-            height: 420px;
-            background: #8b5a2b; /* Wood workbench surface */
-            border: 8px solid #3d2314;
+        #game-board {
+            width: 600px;
+            height: 400px;
+            background: #162447;
+            border: 6px solid #1f4068;
             border-radius: 14px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.7), inset 0 0 40px rgba(0,0,0,0.3);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
             position: relative;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            padding: 30px;
+            justify-content: center;
+            padding: 25px;
             box-sizing: border-box;
         }
         .header-ui {
             margin-bottom: 20px;
             text-align: center;
         }
-        h1 { margin: 0 0 5px 0; font-size: 24px; color: #d4a373; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-        p { margin: 0; font-size: 14px; color: #bc6c25; font-weight: bold; }
+        h1 { margin: 0 0 5px 0; font-size: 22px; color: #e43f5a; }
+        p { margin: 0; font-size: 14px; color: #a4b3b6; }
         
-        .board-section {
-            width: 45%;
-            height: 100%;
-            background: #a67c52;
-            border: 4px dashed #5c4033;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-around;
-            padding: 15px;
-            position: relative;
+        /* Puzzle 1: Shape Fitting */
+        .shape-container { display: flex; gap: 20px; width: 100%; justify-content: space-around; }
+        .slot, .piece {
+            width: 110px; height: 90px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 13px; text-align: center;
         }
-        .section-title {
-            font-size: 13px;
-            font-weight: bold;
-            color: #3d2314;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .slot { border: 3px dashed #e43f5a; background: rgba(228, 63, 90, 0.1); }
+        .piece { background: #e43f5a; color: white; cursor: grab; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
-        .slots-container, .pieces-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%;
-            align-items: center;
-        }
-        
-        .wood-slot {
-            width: 95%;
-            height: 55px;
-            background: #5c4033; /* Dark cutout slot */
-            border: 2px inset #3d2314;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: inset 0 4px 6px rgba(0,0,0,0.6);
-        }
-        
-        .wood-piece {
-            width: 95%;
-            height: 55px;
-            background: #d4a373; /* Natural timber piece */
-            background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 2px, transparent 0, transparent 4px);
-            border: 2px solid #b5838d;
-            border-radius: 6px;
-            cursor: grab;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 13px;
-            color: #3d2314;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
-        .wood-piece:active { cursor: grabbing; transform: scale(1.02); }
+        /* Puzzle 2: Wire Connecting */
+        .wire-grid { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 400px; }
+        .wire-row { display: flex; justify-content: space-between; align-items: center; background: #1f4068; padding: 10px 15px; border-radius: 8px; }
+        .wire-btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
 
-        #message {
-            margin-top: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #606c38;
-            height: 25px;
-            text-align: center;
+        /* Puzzle 3: Word Unscramble */
+        .letter-container { display: flex; gap: 12px; margin-top: 20px; }
+        .letter-tile {
+            width: 50px; height: 50px; background: #0f4c81; border: 2px solid #5bc0be;
+            border-radius: 6px; display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: bold; cursor: pointer; color: white;
         }
+        .target-box { display: flex; gap: 10px; min-height: 60px; align-items: center; margin-bottom: 15px; }
+        .drop-spot { width: 50px; height: 50px; border: 2px dashed #eaeaea; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; }
+
+        #message { margin-top: 15px; font-size: 16px; font-weight: bold; color: #4ecca3; height: 25px; }
     </style>
 </head>
 <body>
 
     <div class="header-ui">
-        <h1 id="level-title">Carpentry Level 1: Plank Assembly</h1>
-        <p>Fit the custom-cut timber blocks perfectly into their routed workbench slots.</p>
+        <h1 id="puzzle-title">Puzzle 1: Wood Shape Fitting</h1>
+        <p id="puzzle-instructions">Drag the correct timber shapes into their designated slots.</p>
     </div>
 
-    <div id="workbench">
-        <!-- Left Side: Routed Slots -->
-        <div class="board-section">
-            <span class="section-title">Workbench Template</span>
-            <div class="slots-container" id="slots-area"></div>
-        </div>
-
-        <!-- Right Side: Timber Pieces -->
-        <div class="board-section">
-            <span class="section-title">Raw Timber Stack</span>
-            <div class="pieces-container" id="pieces-area"></div>
-        </div>
-    </div>
-
+    <div id="game-board"></div>
     <div id="message"></div>
 
     <script>
-        // Wood-themed puzzle stages (Easily expandable up to 100+ levels)
-        const levels = [
-            {
-                title: "Carpentry Level 1: Plank Assembly",
-                pieces: [
-                    { id: 'beam', name: 'Support Beam (Long)', shape: 'Rectangle' },
-                    { id: 'wedge', name: 'Corner Wedge', shape: 'Triangle Cut' },
-                    { id: 'peg', name: 'Anchor Dowel', shape: 'Cylinder Block' }
-                ],
-                slots: ['beam', 'wedge', 'peg']
-            },
-            {
-                title: "Carpentry Level 2: Joint Precision",
-                pieces: [
-                    { id: 'mortise', name: 'Mortise Joint', shape: 'Notched Timber' },
-                    { id: 'tenon', name: 'Tenon Lock', shape: 'Stepped Block' },
-                    { id: 'batten', name: 'Oak Batten', shape: 'Crossbeam' }
-                ],
-                slots: ['tenon', 'mortise', 'batten']
-            },
-            {
-                title: "Carpentry Level 3: Structural Framing",
-                pieces: [
-                    { id: 'truss', name: 'Roof Truss', shape: 'A-Frame Beam' },
-                    { id: 'stud', name: 'Wall Stud', shape: 'Vertical Timber' },
-                    { id: 'sill', name: 'Base Sill Plate', shape: 'Plate Timber' }
-                ],
-                slots: ['stud', 'truss', 'sill']
-            }
-        ];
-
-        let currentLevel = 0;
-        const slotsArea = document.getElementById('slots-area');
-        const piecesArea = document.getElementById('pieces-area');
-        const levelTitle = document.getElementById('level-title');
+        let currentStage = 1;
+        const board = document.getElementById('game-board');
+        const title = document.getElementById('puzzle-title');
+        const instructions = document.getElementById('puzzle-instructions');
         const message = document.getElementById('message');
 
-        function loadLevel(index) {
-            if (index >= levels.length) {
-                levelTitle.innerText = "Master Carpenter Achievement Unlocked!";
-                document.getElementById('workbench').innerHTML = "<h2 style='color:#d4a373; text-align:center; width:100%'>You successfully built all timber structures with absolute precision!</h2>";
-                return;
-            }
+        function loadStage(stage) {
+            board.innerHTML = '';
+            message.innerHTML = '';
 
-            const lvl = levels[index];
-            levelTitle.innerText = lvl.title;
-            slotsArea.innerHTML = '';
-            piecesArea.innerHTML = '';
-            message.innerText = '';
+            if (stage === 1) {
+                // PUZZLE 1: Shape Fitting (Grid/Row based)
+                title.innerText = "Puzzle 1: Timber Shape Fitting";
+                instructions.innerText = "Match the customized blocks to their correct cutout profiles.";
 
-            // Randomize slot layout order for puzzle challenge
-            let targetSlots = [...lvl.slots];
-            targetSlots.sort(() => Math.random() - 0.5);
-
-            targetSlots.forEach(slotId => {
-                const slot = document.createElement('div');
-                slot.className = 'wood-slot';
-                slot.dataset.target = slotId;
+                let container = document.createElement('div');
+                container.className = 'shape-container';
                 
-                slot.addEventListener('dragover', (e) => e.preventDefault());
-                slot.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    const draggedId = e.dataTransfer.getData('text/plain');
-                    if (draggedId === slotId && slot.children.length === 0) {
-                        const draggedElement = document.getElementById(draggedId);
-                        slot.appendChild(draggedElement);
-                        draggedElement.setAttribute('draggable', 'false');
-                        draggedElement.style.width = "100%";
-                        draggedElement.style.height = "100%";
-                        checkWin();
-                    }
+                let slotsDiv = document.createElement('div');
+                slotsDiv.style.display = "flex"; slotsDiv.style.flexDirection = "column"; slotsDiv.style.gap = "10px";
+                let piecesDiv = document.createElement('div');
+                piecesDiv.style.display = "flex"; piecesDiv.style.flexDirection = "column"; piecesDiv.style.gap = "10px";
+
+                let shapes = [
+                    { id: 'sq', name: 'Square Block' },
+                    { id: 'tri', name: 'Triangle Wedge' },
+                    { id: 'cir', name: 'Cylinder Dowel' }
+                ];
+
+                let shuffledShapes = [...shapes].sort(() => Math.random() - 0.5);
+
+                shapes.forEach(s => {
+                    let slot = document.createElement('div');
+                    slot.className = 'slot';
+                    slot.dataset.target = s.id;
+                    slot.innerText = `Slot: ${s.name}`;
+                    slot.addEventListener('dragover', e => e.preventDefault());
+                    slot.addEventListener('drop', e => {
+                        e.preventDefault();
+                        let id = e.dataTransfer.getData('text');
+                        if (id === s.id && slot.children.length === 0) {
+                            slot.appendChild(document.getElementById(id));
+                            checkPuzzle1Win();
+                        }
+                    });
+                    slotsDiv.appendChild(slot);
                 });
 
-                slotsArea.appendChild(slot);
-            });
-
-            // Randomize raw timber stack order
-            let shuffledPieces = [...lvl.pieces].sort(() => Math.random() - 0.5);
-            shuffledPieces.forEach(pieceData => {
-                const piece = document.createElement('div');
-                piece.className = 'wood-piece';
-                piece.id = pieceData.id;
-                piece.innerText = `${pieceData.name} [${pieceData.shape}]`;
-                piece.setAttribute('draggable', 'true');
-
-                piece.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', pieceData.id);
+                shuffledShapes.forEach(s => {
+                    let piece = document.createElement('div');
+                    piece.className = 'piece';
+                    piece.id = s.id;
+                    piece.innerText = s.name;
+                    piece.setAttribute('draggable', 'true');
+                    piece.addEventListener('dragstart', e => e.dataTransfer.setData('text', s.id));
+                    piecesDiv.appendChild(piece);
                 });
 
-                piecesArea.appendChild(piece);
-            });
-        }
+                container.appendChild(slotsDiv);
+                container.appendChild(piecesDiv);
+                board.appendChild(container);
 
-        function checkWin() {
-            const slots = document.querySelectorAll('.wood-slot');
-            let allFilled = true;
-            slots.forEach(slot => {
-                if (slot.children.length === 0) allFilled = false;
-            });
+            } else if (stage === 2) {
+                // PUZZLE 2: Circuit / Wire Connection
+                title.innerText = "Puzzle 2: Workshop Circuit Link";
+                instructions.innerText = "Connect the matching colored wires to power up the table saw.";
 
-            if (allFilled) {
-                message.innerText = "🪚 Precise Fit! Securing timber & loading next blueprint... 🪚";
-                setTimeout(() => {
-                    currentLevel++;
-                    loadLevel(currentLevel);
-                }, 1300);
+                let grid = document.createElement('div');
+                grid.className = 'wire-grid';
+
+                let colors = [
+                    { name: 'Power Line (Red)', color: '#e43f5a', connected: false },
+                    { name: 'Ground Line (Blue)', color: '#3a86ff', connected: false },
+                    { name: 'Safety Line (Green)', color: '#38b000', connected: false }
+                ];
+
+                colors.sort(() => Math.random() - 0.5);
+
+                colors.forEach((c, index) => {
+                    let row = document.createElement('div');
+                    row.className = 'wire-row';
+                    
+                    let label = document.createElement('span');
+                    label.innerText = c.name;
+                    label.style.fontWeight = 'bold';
+
+                    let btn = document.createElement('button');
+                    btn.className = 'wire-btn';
+                    btn.style.backgroundColor = c.color;
+                    btn.innerText = "Link Wire";
+                    
+                    btn.onclick = () => {
+                        btn.innerText = "Linked ✓";
+                        btn.style.backgroundColor = "#555";
+                        btn.disabled = true;
+                        c.connected = true;
+                        
+                        if (colors.every(item => item.connected)) {
+                            message.innerText = "⚡ Power Restored! Loading next puzzle... ⚡";
+                            setTimeout(() => { currentStage++; loadStage(currentStage); }, 1400);
+                        }
+                    };
+
+                    row.appendChild(label);
+                    row.appendChild(btn);
+                    grid.appendChild(row);
+                });
+
+                board.appendChild(grid);
+
+            } else if (stage === 3) {
+                // PUZZLE 3: Word Unscramble (Wood Tool)
+                title.innerText = "Puzzle 3: Carpentry Word Unscramble";
+                instructions.innerText = "Click the letters in the correct order to spell the tool: **CHISEL**";
+
+                let targetWord = "CHISEL";
+                let scrambled = "LIHSCE".split('').sort(() => Math.random() - 0.5);
+                
+                let targetBox = document.createElement('div');
+                targetBox.className = 'target-box';
+                let currentInput = [];
+
+                for (let i = 0; i < targetWord.length; i++) {
+                    let spot = document.createElement('div');
+                    spot.className = 'drop-spot';
+                    spot.id = `spot-${i}`;
+                    targetBox.appendChild(spot);
+                }
+                board.appendChild(targetBox);
+
+                let letterContainer = document.createElement('div');
+                letterContainer.className = 'letter-container';
+
+                scrambled.forEach((char, index) => {
+                    let tile = document.createElement('div');
+                    tile.className = 'letter-tile';
+                    tile.innerText = char;
+                    tile.onclick = () => {
+                        if (currentInput.length < targetWord.length) {
+                            currentInput.push(char);
+                            tile.style.visibility = 'hidden';
+                            tile.dataset.used = "true";
+                            
+                            // Update display spot
+                            document.getElementById(`spot-${currentInput.length - 1}`).innerText = char;
+
+                            if (currentInput.length === targetWord.length) {
+                                let formed = currentInput.join('');
+                                if (formed === targetWord) {
+                                    message.innerText = "🔨 Word Solved! Workshop Mastered! 🔨";
+                                } else {
+                                    message.innerText = "❌ Incorrect spelling, resetting...";
+                                    setTimeout(() => loadStage(3), 1200);
+                                }
+                            }
+                        }
+                    };
+                    letterContainer.appendChild(tile);
+                });
+
+                board.appendChild(letterContainer);
             }
         }
 
-        // Initialize puzzle framework
-        loadLevel(currentLevel);
+        function checkPuzzle1Win() {
+            let slots = document.querySelectorAll('.slot');
+            let filled = true;
+            slots.forEach(s => { if (s.children.length === 0) filled = false; });
+            if (filled) {
+                message.innerText = "✨ Perfect Fit! Loading next puzzle... ✨";
+                setTimeout(() => { currentStage++; loadStage(currentStage); }, 1400);
+            }
+        }
+
+        // Start game
+        loadStage(currentStage);
     </script>
 </body>
 </html>
