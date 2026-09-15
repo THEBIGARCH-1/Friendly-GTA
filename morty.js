@@ -46,7 +46,7 @@ for (let i = 0; i < positionAttribute.count; i++) {
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2(-999, -999);
 let isDragging = false;
-let intersectedVertexIndex = -1;
+let grabPointLocal = new THREE.Vector3();
 
 window.addEventListener('pointermove', (event) => {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -54,14 +54,11 @@ window.addEventListener('pointermove', (event) => {
 });
 
 window.addEventListener('pointerdown', () => { isDragging = true; });
-window.addEventListener('pointerup', () => { 
-    isDragging = false; 
-    intersectedVertexIndex = -1;
-});
+window.addEventListener('pointerup', () => { isDragging = false; });
 
-const springConstant = 0.08;
-const damping = 0.04;
-const mousePullStrength = 0.4;
+const springConstant = 0.05;
+const damping = 0.06;
+const pullRadius = 0.8; // How much of Morty's face stretches together
 
 function animate() {
     requestAnimationFrame(animate);
@@ -70,9 +67,9 @@ function animate() {
     const intersects = raycaster.intersectObject(mortyMesh);
 
     if (isDragging && intersects.length > 0) {
-        if (intersectedVertexIndex === -1) {
-            intersectedVertexIndex = intersects[0].face.a;
-        }
+        // Track the cursor point transformed into Morty's local space
+        grabPointLocal.copy(intersects[0].point);
+        mortyMesh.worldToLocal(grabPointLocal);
     }
 
     for (let i = 0; i < positionAttribute.count; i++) {
@@ -84,16 +81,22 @@ function animate() {
         const orig = originalPositions[i];
         const vel = currentVelocities[i];
 
+        // Hooke's Law spring back to original position
         const displacement = p.clone().sub(orig);
         const springForce = displacement.clone().multiplyScalar(-springConstant);
         const dampingForce = vel.clone().multiplyScalar(-damping);
 
         vel.add(springForce).add(dampingForce);
 
-        if (isDragging && i === intersectedVertexIndex) {
-            const targetPos = intersects[0].point.clone();
-            mortyMesh.worldToLocal(targetPos);
-            vel.add(targetPos.clone().sub(p).multiplyScalar(mousePullStrength));
+        // If dragging, apply elastic pull based on distance to the cursor grab point
+        if (isDragging) {
+            const distToGrab = p.distanceTo(grabPointLocal);
+            if (distToGrab < pullRadius) {
+                // Smooth falloff curve like a rubber sheet
+                const influence = 1 - (distToGrab / pullRadius);
+                const pullForce = grabPointLocal.clone().sub(p).multiplyScalar(0.2 * influence);
+                vel.add(pullForce);
+            }
         }
 
         p.add(vel);
