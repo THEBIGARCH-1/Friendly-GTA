@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfection Puzzle Game</title>
+    <title>Timber Craft: Precision Wood Puzzles</title>
     <style>
         body {
             margin: 0;
-            background: #2c3e50;
-            color: #ecf0f1;
+            background: #1e1512;
+            color: #f4e8c1;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
@@ -17,142 +17,180 @@
             height: 100vh;
             user-select: none;
         }
-        #game-container {
-            width: 500px;
-            height: 400px;
-            background: #34495e;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        #workbench {
+            width: 650px;
+            height: 420px;
+            background: #8b5a2b; /* Wood workbench surface */
+            border: 8px solid #3d2314;
+            border-radius: 14px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.7), inset 0 0 40px rgba(0,0,0,0.3);
             position: relative;
-            overflow: hidden;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
-            padding: 20px;
+            padding: 30px;
             box-sizing: border-box;
         }
-        .ui {
-            margin-bottom: 15px;
+        .header-ui {
+            margin-bottom: 20px;
             text-align: center;
         }
-        h1 { margin: 0 0 5px 0; font-size: 22px; color: #f1c40f; }
-        p { margin: 0; font-size: 14px; color: #bdc3c7; }
+        h1 { margin: 0 0 5px 0; font-size: 24px; color: #d4a373; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        p { margin: 0; font-size: 14px; color: #bc6c25; font-weight: bold; }
         
-        .slot {
-            width: 90px;
-            height: 90px;
-            border: 3px dashed #7f8c8d;
+        .board-section {
+            width: 45%;
+            height: 100%;
+            background: #a67c52;
+            border: 4px dashed #5c4033;
             border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            padding: 15px;
+            position: relative;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #3d2314;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .slots-container, .pieces-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            align-items: center;
+        }
+        
+        .wood-slot {
+            width: 95%;
+            height: 55px;
+            background: #5c4033; /* Dark cutout slot */
+            border: 2px inset #3d2314;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.1);
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.6);
         }
         
-        .item {
-            width: 75px;
-            height: 75px;
-            border-radius: 8px;
+        .wood-piece {
+            width: 95%;
+            height: 55px;
+            background: #d4a373; /* Natural timber piece */
+            background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 2px, transparent 0, transparent 4px);
+            border: 2px solid #b5838d;
+            border-radius: 6px;
             cursor: grab;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
+            color: #3d2314;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
+            transition: transform 0.1s, box-shadow 0.1s;
         }
-        .item:active { cursor: grabbing; transform: scale(1.05); }
+        .wood-piece:active { cursor: grabbing; transform: scale(1.02); }
 
         #message {
             margin-top: 15px;
             font-size: 18px;
             font-weight: bold;
-            color: #2ecc71;
+            color: #606c38;
             height: 25px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <div class="ui">
-        <h1 id="level-title">Level 1: Color Order</h1>
-        <p>Drag each item into its matching slot to achieve perfection!</p>
+    <div class="header-ui">
+        <h1 id="level-title">Carpentry Level 1: Plank Assembly</h1>
+        <p>Fit the custom-cut timber blocks perfectly into their routed workbench slots.</p>
     </div>
 
-    <div id="game-container">
-        <div id="slots-area" style="display: flex; gap: 20px;"></div>
-        <div id="items-area" style="display: flex; gap: 20px; flex-direction: column;"></div>
+    <div id="workbench">
+        <!-- Left Side: Routed Slots -->
+        <div class="board-section">
+            <span class="section-title">Workbench Template</span>
+            <div class="slots-container" id="slots-area"></div>
+        </div>
+
+        <!-- Right Side: Timber Pieces -->
+        <div class="board-section">
+            <span class="section-title">Raw Timber Stack</span>
+            <div class="pieces-container" id="pieces-area"></div>
+        </div>
     </div>
 
     <div id="message"></div>
 
     <script>
-        // Data for multiple levels (Easily expandable up to 100+ levels)
+        // Wood-themed puzzle stages (Easily expandable up to 100+ levels)
         const levels = [
             {
-                title: "Level 1: Primary Colors",
-                items: [
-                    { id: 'red', name: 'Red Gem', color: '#e74c3c' },
-                    { id: 'blue', name: 'Blue Gem', color: '#3498db' },
-                    { id: 'green', name: 'Green Gem', color: '#2ecc71' }
+                title: "Carpentry Level 1: Plank Assembly",
+                pieces: [
+                    { id: 'beam', name: 'Support Beam (Long)', shape: 'Rectangle' },
+                    { id: 'wedge', name: 'Corner Wedge', shape: 'Triangle Cut' },
+                    { id: 'peg', name: 'Anchor Dowel', shape: 'Cylinder Block' }
                 ],
-                slots: ['red', 'blue', 'green']
+                slots: ['beam', 'wedge', 'peg']
             },
             {
-                title: "Level 2: Shape & Shade",
-                items: [
-                    { id: 'purple', name: 'Amethyst', color: '#9b59b6' },
-                    { id: 'orange', name: 'Topaz', color: '#e67e22' },
-                    { id: 'yellow', name: 'Citrine', color: '#f1c40f' }
+                title: "Carpentry Level 2: Joint Precision",
+                pieces: [
+                    { id: 'mortise', name: 'Mortise Joint', shape: 'Notched Timber' },
+                    { id: 'tenon', name: 'Tenon Lock', shape: 'Stepped Block' },
+                    { id: 'batten', name: 'Oak Batten', shape: 'Crossbeam' }
                 ],
-                slots: ['orange', 'yellow', 'purple']
+                slots: ['tenon', 'mortise', 'batten']
             },
             {
-                title: "Level 3: Deep Elements",
-                items: [
-                    { id: 'dark', name: 'Obsidian', color: '#2c3e50' },
-                    { id: 'teal', name: 'Diamond', color: '#1abc9c' },
-                    { id: 'pink', name: 'Quartz', color: '#ff7675' }
+                title: "Carpentry Level 3: Structural Framing",
+                pieces: [
+                    { id: 'truss', name: 'Roof Truss', shape: 'A-Frame Beam' },
+                    { id: 'stud', name: 'Wall Stud', shape: 'Vertical Timber' },
+                    { id: 'sill', name: 'Base Sill Plate', shape: 'Plate Timber' }
                 ],
-                slots: ['pink', 'dark', 'teal']
+                slots: ['stud', 'truss', 'sill']
             }
-            // You can continue adding levels up to 100+ here!
         ];
 
         let currentLevel = 0;
         const slotsArea = document.getElementById('slots-area');
-        const itemsArea = document.getElementById('items-area');
+        const piecesArea = document.getElementById('pieces-area');
         const levelTitle = document.getElementById('level-title');
         const message = document.getElementById('message');
 
         function loadLevel(index) {
             if (index >= levels.length) {
-                levelTitle.innerText = "Congratulations!";
-                document.getElementById('game-container').innerHTML = "<h2 style='color:#f1c40f;'>You completed all available perfection levels!</h2>";
+                levelTitle.innerText = "Master Carpenter Achievement Unlocked!";
+                document.getElementById('workbench').innerHTML = "<h2 style='color:#d4a373; text-align:center; width:100%'>You successfully built all timber structures with absolute precision!</h2>";
                 return;
             }
 
             const lvl = levels[index];
             levelTitle.innerText = lvl.title;
             slotsArea.innerHTML = '';
-            itemsArea.innerHTML = '';
+            piecesArea.innerHTML = '';
             message.innerText = '';
 
-            // Create randomized slots
+            // Randomize slot layout order for puzzle challenge
             let targetSlots = [...lvl.slots];
-            // Shuffle slots for a puzzle challenge
             targetSlots.sort(() => Math.random() - 0.5);
 
             targetSlots.forEach(slotId => {
                 const slot = document.createElement('div');
-                slot.className = 'slot';
+                slot.className = 'wood-slot';
                 slot.dataset.target = slotId;
                 
-                // Visual indicator of target color
-                const targetData = lvl.items.find(i => i.id === slotId);
-                slot.style.borderColor = targetData.color;
-
                 slot.addEventListener('dragover', (e) => e.preventDefault());
                 slot.addEventListener('drop', (e) => {
                     e.preventDefault();
@@ -161,6 +199,8 @@
                         const draggedElement = document.getElementById(draggedId);
                         slot.appendChild(draggedElement);
                         draggedElement.setAttribute('draggable', 'false');
+                        draggedElement.style.width = "100%";
+                        draggedElement.style.height = "100%";
                         checkWin();
                     }
                 });
@@ -168,41 +208,40 @@
                 slotsArea.appendChild(slot);
             });
 
-            // Create randomized items to drag
-            let shuffledItems = [...lvl.items].sort(() => Math.random() - 0.5);
-            shuffledItems.forEach(itemData => {
-                const item = document.createElement('div');
-                item.className = 'item';
-                item.id = itemData.id;
-                item.innerText = itemData.name;
-                item.style.backgroundColor = itemData.color;
-                item.setAttribute('draggable', 'true');
+            // Randomize raw timber stack order
+            let shuffledPieces = [...lvl.pieces].sort(() => Math.random() - 0.5);
+            shuffledPieces.forEach(pieceData => {
+                const piece = document.createElement('div');
+                piece.className = 'wood-piece';
+                piece.id = pieceData.id;
+                piece.innerText = `${pieceData.name} [${pieceData.shape}]`;
+                piece.setAttribute('draggable', 'true');
 
-                item.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', itemData.id);
+                piece.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', pieceData.id);
                 });
 
-                itemsArea.appendChild(item);
+                piecesArea.appendChild(piece);
             });
         }
 
         function checkWin() {
-            const slots = document.querySelectorAll('.slot');
+            const slots = document.querySelectorAll('.wood-slot');
             let allFilled = true;
             slots.forEach(slot => {
                 if (slot.children.length === 0) allFilled = false;
             });
 
             if (allFilled) {
-                message.innerText = "✨ Perfect! Loading next level... ✨";
+                message.innerText = "🪚 Precise Fit! Securing timber & loading next blueprint... 🪚";
                 setTimeout(() => {
                     currentLevel++;
                     loadLevel(currentLevel);
-                }, 1200);
+                }, 1300);
             }
         }
 
-        // Initialize game
+        // Initialize puzzle framework
         loadLevel(currentLevel);
     </script>
 </body>
